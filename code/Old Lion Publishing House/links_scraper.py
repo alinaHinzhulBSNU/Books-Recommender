@@ -1,5 +1,3 @@
-# Даний скрипт призначено для збору посилань на окремі книги на сайті "Видавництво Старого Лева"
-
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import ssl
