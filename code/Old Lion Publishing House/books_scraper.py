@@ -3,7 +3,9 @@ from datetime import datetime
 from links_scraper import parse_web_data
 
 
-def parse_book_data(soup):
+def parse_book_data(book_link):
+    # Parsing
+    soup = parse_web_data(book_link)
     product_info = soup.find("div").find("section").find("main").find_all("div")[5]
     
     book = dict()
@@ -43,6 +45,9 @@ def parse_book_data(soup):
     # Опис книги
     book["description"] = ''.join([p.text for p in 
                            product_info.select(".product-page__description")[0].find_all("p")])
+    
+    # Посилання на книгу
+    book["url"] = book_link
 
     return book
 
@@ -63,9 +68,7 @@ if __name__ == "__main__":
     for book_link in book_links:
         print(f"\rПроскановано {i / books_count * 100:.0f}%", end = "\t")
         
-        soup = parse_web_data(book_link)
-
-        book = parse_book_data(soup)
+        book = parse_book_data(book_link)
         books.append(book)
 
         i = i + 1
@@ -73,7 +76,7 @@ if __name__ == "__main__":
     # Збереження результатів парсингу
     with open("../raw/olph_books.json", "w") as f:
         json.dump(books, f, ensure_ascii = False)
-        print("\nJSON-файл успішно збережено.")
+        print(f"\nJSON-файл успішно збережено. Кількість книг: {i - 1}")
 
     current_time = datetime.now()
-    print(current_time.strftime("\n(%d, %b %Y, %H:%M:%S)"))
+    print(current_time.strftime("(%d, %b %Y, %H:%M:%S)"))
