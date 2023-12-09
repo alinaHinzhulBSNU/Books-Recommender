@@ -1,5 +1,2 @@
 .DS_Store
-code/__pycache__/
-code/Old Lion Publishing House/__pycache__/
-code/Komora/__pycache__/
-code/Laboratoria/__pycache__/
+code/web_scraping/__pycache__/
