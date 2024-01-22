@@ -74,4 +74,7 @@ class KomoraWebScraper(WebScraper):
         # Обкладинка
         book["cover_img"] = soup.select(".woocommerce-product-gallery__image")[0].find_all("a")[0]["href"]
 
+        # Видавництво
+        book["publisher"] = "Комора"
+
         return book
