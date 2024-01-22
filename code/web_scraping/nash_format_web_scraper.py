@@ -66,6 +66,10 @@ class NashFormatWebScraper(WebScraper):
 
         book["description"] = soup.select("#annotation")[0].text.strip()
 
+        # Посилання
         book["url"] = book_link
+
+        # Обкладинка
+        book["cover_img"] = soup.select(".fn-img")[0]["data-src"]
 
         return book
