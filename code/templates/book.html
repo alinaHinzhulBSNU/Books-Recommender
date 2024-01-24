@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Book{% endblock %}
+
+{% block logout %}<p class="text-center"><a href="{{url_for('logout')}}">Logout</a></p>{% endblock %}
+
+{% block content %}
+
+
+<div class = "row justify-content-center">
+    <div class="col-md-2 m-3 text-center">
+        <img src="{{book.cover_url}}" class="book_cover pt-3"/>
+        <ul class="text-justify pt-3">
+            <li>ISBN: {{book.isbn}}</li>
+
+            {% if book.original_book_title is not none %}
+            <li>Назва мовою оригіналу: {{book.original_book_title}}</li>
+            {% endif %}
+
+            <li>Видавництво: {{book.publisher.publisher_name}}</li>
+
+            {% if book.year is not none %}
+            <li>Рік: {{book.year}}</li>
+            {% endif %}
+
+            {% if book.pages is not none %}
+            <li>К-ть сторінок: {{book.pages}}</li>
+            {% endif %}
+
+            {% if book.size is not none %}
+            <li>Розмір: {{book.size}}</li>
+            {% endif %}
+
+            {% if book.cover is not none %}
+            <li>Тип обкладинки: {{book.cover}}</li>
+            {% endif %}
+
+            {% if book.language is not none %}
+            <li>Мова: {{book.language}}</li>
+            {% endif %}
+            
+            {% if book.age_limit is not none %}
+            <li>Вік: {{book.age_limit}}</li>
+            {% endif %}
+        </ul>
+
+        <a href="#">
+            <button class="btn btn-lg btn-block btn-success">Like</button>
+        </a>
+    </div>
+    <div class="col-md-9">
+        <a href="{{book.url}}">
+            <h4 class="text-justify m-3 p-3">
+                {{book.book_title}} (
+                    {% for author in book.authors %}
+                    <span><i>{{author.author_name}}</i></span>
+                    {% endfor %}  
+                )
+            </h4>
+        </a>
+        
+        {% if book.price is not none %}
+        <h5 class="text-justify p-3 m-3">Ціна: {{book.price}} грн</h5>
+        {% else %}
+            <h5 class="text-justify p-3 m-3">Немає в наявності</h5>
+        {% endif %}
+        <p class="p-3 m-3 text-justify">
+            {{book.description}}
+
+            {% if book.tags %}
+            <p class="text-justify p-3 m-3 tag">
+                Теги:
+                {% for tag in book.tags %}
+                <span class="tag">#{{tag.tag}}</span>
+                {% endfor %}
+            </p>
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}

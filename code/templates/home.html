@@ -1,11 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Books Recommender Demo</title>
-</head>
-<body>
-    <h1>Books Recommender Demo</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Books Recommender Demo{% endblock %}
+
+{% block logout %}<p class="text-center"><a href="{{url_for('logout')}}">Logout</a></p>{% endblock %}
+
+{% block content %}
+<h2 class="text-center m-3">Books</h2>
+
+<div class="row m-3 p-3 justify-content-center">
+{% for book in books %}
+    <div class="col-md-3 book m-3 p-3">
+        <a href="/book-{{book.id}}">
+        <p class="text-center">
+            <img src="{{book.cover_url}}" class="book_cover"/>
+        </p>
+        <p class="text-center">  
+            <b>{{book.book_title}}</b>
+        </p>
+        <p class="text-center">
+            {% for author in book.authors %}
+            <span><i>{{author.author_name}}</i></span>
+            {% endfor %}
+        </p>
+        {% if book.price is not none %}
+            <p class="text-center">{{book.price}} грн</p>
+        {% else %}
+            <p class="text-center">Немає в наявності</p>
+        {% endif %}
+        </a>
+    </div>
+{% endfor %}
+</div>
+<p class="text-center">
+{% for page in pages %}
+    {% if current_page - 5 <= page <= current_page + 5 %}
+        <a href="/page-{{page}}">{{page}}</a>
+    {% endif %}
+{% endfor%}
+...
+<a href="/page-{{pages[-1]}}">{{pages[-1]}}</a>
+</p>
+{% endblock %}
+
