@@ -2,13 +2,29 @@
 
 {% block title %}Books Recommender Demo{% endblock %}
 
-{% block logout %}<p class="text-center"><a href="{{url_for('logout')}}">Logout</a></p>{% endblock %}
-
 {% block content %}
-<h2 class="text-center m-3">Books</h2>
+<h2 class="text-center m-3">Всі книги</h2>
 
+<!-- Search -->
+<div class="p-3 m-3">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="row justify-content-center">
+            <div class="form-group col-md-4">
+                {{ form.book_title(class_="form-control", size=32) }}
+            </div>
+
+            <div class="form-group col-md-2">
+                {{ form.submit(class_="form-control custom-button") }}
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Book list -->
 <div class="row m-3 p-3 justify-content-center">
-{% for book in books %}
+    {% for book in books %}
     <div class="col-md-3 book m-3 p-3">
         <a href="/book-{{book.id}}">
         <p class="text-center">
@@ -23,22 +39,28 @@
             {% endfor %}
         </p>
         {% if book.price is not none %}
-            <p class="text-center">{{book.price}} грн</p>
+            <p class="text-center price">{{book.price | int}} грн</p>
         {% else %}
-            <p class="text-center">Немає в наявності</p>
+            <p class="text-center price">Немає в наявності</p>
         {% endif %}
         </a>
     </div>
-{% endfor %}
+    {% endfor %}
 </div>
-<p class="text-center">
-{% for page in pages %}
-    {% if current_page - 5 <= page <= current_page + 5 %}
-        <a href="/page-{{page}}">{{page}}</a>
-    {% endif %}
-{% endfor%}
-...
-<a href="/page-{{pages[-1]}}">{{pages[-1]}}</a>
-</p>
+
+<!-- Pagination -->
+{% if pages is not none %}
+<div>
+    <p class="text-center page-number">
+    Сторінки:
+    {% for page in pages %}
+        {% if current_page - 5 <= page <= current_page + 5 %}
+            <a href="/page-{{page}}" class="page-number">{{page}}</a>
+        {% endif %}
+    {% endfor%}
+    ...
+    </p>
+</div>
+{% endif %}
 {% endblock %}
 

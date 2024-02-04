@@ -2,80 +2,159 @@
 
 {% block title %}Book{% endblock %}
 
-{% block logout %}<p class="text-center"><a href="{{url_for('logout')}}">Logout</a></p>{% endblock %}
-
 {% block content %}
 
+<!-- Title -->
+<a href="{{book.url}}">
+    <h2 class="text-center pt-3 pb-3 m-3">
+        {{book.book_title}} (
+            {% for author in book.authors %}
+            <span><i>{{author.author_name}}</i></span>
+            {% endfor %}  
+        )
+    </h2>
+</a>
 
 <div class = "row justify-content-center">
+
     <div class="col-md-2 m-3 text-center">
+
+        <!-- Cover -->
         <img src="{{book.cover_url}}" class="book_cover pt-3"/>
-        <ul class="text-justify pt-3">
-            <li>ISBN: {{book.isbn}}</li>
-
-            {% if book.original_book_title is not none %}
-            <li>Назва мовою оригіналу: {{book.original_book_title}}</li>
-            {% endif %}
-
-            <li>Видавництво: {{book.publisher.publisher_name}}</li>
-
-            {% if book.year is not none %}
-            <li>Рік: {{book.year}}</li>
-            {% endif %}
-
-            {% if book.pages is not none %}
-            <li>К-ть сторінок: {{book.pages}}</li>
-            {% endif %}
-
-            {% if book.size is not none %}
-            <li>Розмір: {{book.size}}</li>
-            {% endif %}
-
-            {% if book.cover is not none %}
-            <li>Тип обкладинки: {{book.cover}}</li>
-            {% endif %}
-
-            {% if book.language is not none %}
-            <li>Мова: {{book.language}}</li>
-            {% endif %}
-            
-            {% if book.age_limit is not none %}
-            <li>Вік: {{book.age_limit}}</li>
-            {% endif %}
-        </ul>
-
-        <a href="#">
-            <button class="btn btn-lg btn-block btn-success">Like</button>
-        </a>
-    </div>
-    <div class="col-md-9">
-        <a href="{{book.url}}">
-            <h4 class="text-justify m-3 p-3">
-                {{book.book_title}} (
-                    {% for author in book.authors %}
-                    <span><i>{{author.author_name}}</i></span>
-                    {% endfor %}  
-                )
-            </h4>
-        </a>
         
+        <!-- Price -->
         {% if book.price is not none %}
-        <h5 class="text-justify p-3 m-3">Ціна: {{book.price}} грн</h5>
+        <h5 class="text-center p-3 m-3 price">Ціна: {{book.price | int}} грн</h5>
         {% else %}
-            <h5 class="text-justify p-3 m-3">Немає в наявності</h5>
+            <h5 class="text-center p-3 m-3">Немає в наявності</h5>
         {% endif %}
-        <p class="p-3 m-3 text-justify">
-            {{book.description}}
 
-            {% if book.tags %}
-            <p class="text-justify p-3 m-3 tag">
-                Теги:
-                {% for tag in book.tags %}
-                <span class="tag">#{{tag.tag}}</span>
-                {% endfor %}
-            </p>
-            {% endif %}
+        <!-- Reaction -->
+        {% if not liked %}
+        <a href="/like-{{book.id}}">
+            <button class="btn btn-lg btn-block btn-success custom-button">Подобається</button>
+        </a>
+        {% else %}
+        <a href="/dislike-{{book.id}}">
+            <button class="btn btn-lg btn-block btn-success custom-button">Не подобається</button>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Description -->
+    <div class="col-md-5">
+        <p class="pt-3 pb-3 text-justify">
+            {{book.description}}
         </p>
     </div>
+
+    <!-- Info -->
+    <div class="col-md-4 pt-3 pb-3">
+        <table class="table table-bordered">
+            <tbody>
+
+                <tr>
+                    <td class="text-right align-middle">ISBN:</td> 
+                    <td>{{book.isbn}}</td>
+                </tr>
+
+                {% if book.original_book_title is not none %}
+                <tr>
+                    <td class="text-right align-middle">Назва мовою оригіналу: </td> 
+                    <td>{{book.original_book_title}}</td>
+                </tr>
+                {% endif %}
+
+                <tr>
+                    <td class="text-right align-middle">Видавництво:</td> 
+                    <td>{{book.publisher.publisher_name}}</td>
+                </tr>
+
+                {% if book.year is not none %}
+                <tr>
+                    <td class="text-right align-middle">Рік:</td> 
+                    <td>{{book.year}}</td>
+                </tr>
+                {% endif %}
+
+                {% if book.pages is not none %}
+                <tr>
+                    <td class="text-right align-middle">К-ть сторінок:</td> 
+                    <td>{{book.pages}}</td>
+                </tr>
+                {% endif %}
+
+                {% if book.size is not none %}
+                <tr>
+                    <td class="text-right align-middle">Розмір:</td> 
+                    <td>{{book.size}}</td>
+                </tr>
+                {% endif %}
+
+
+                {% if book.cover is not none %}
+                <tr>
+                    <td class="text-right align-middle">Тип обкладинки:</td> 
+                    <td>{{book.cover}}</td>
+                </tr>
+                {% endif %}
+
+                {% if book.language is not none %}
+                <tr>
+                    <td class="text-right align-middle">Мова:</td> 
+                    <td>{{book.language}}</td>
+                </tr>
+                {% endif %}
+
+                {% if book.age_limit is not none %}
+                <tr>
+                    <td class="text-right align-middle">Вік:</td> 
+                    <td>{{book.age_limit}}</td>
+                </tr>
+                {% endif %}
+
+            </tbody>
+        </table>
+
+        <!-- Tags -->
+        {% if book.tags %}
+        <p class="text-justify pt-3 pb-3 tag">
+            Теги:
+            {% for tag in book.tags %}
+            <span class="tag">#{{tag.tag}}</span>
+            {% endfor %}
+        </p>
+        {% endif %}
+
+    </div>
+
 </div>
+
+<!-- Similar books list -->
+<h3 class="text-center">Схожі книги:</h3>
+<div class="row m-3 p-3 justify-content-center">
+    {% for book in sim_books %}
+        <div class="col-md-2 book p-3 m-3">
+            <a href="/book-{{book.id}}">
+            <p class="text-center">
+                <img src="{{book.cover_url}}" class="book_cover"/>
+            </p>
+            <p class="text-center">  
+                <b>{{book.book_title}}</b>
+            </p>
+            <p class="text-center">
+                {% for author in book.authors %}
+                <span><i>{{author.author_name}}</i></span>
+                {% endfor %}
+            </p>
+            {% if book.price is not none %}
+                <p class="text-center price">{{book.price | int}} грн</p>
+            {% else %}
+                <p class="text-center price">Немає в наявності</p>
+            {% endif %}
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
 {% endblock %}

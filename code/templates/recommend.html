@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Recommend{% endblock %}
+
+{% block content %}
+
+{% if sim_books | length > 0 %}
+<h2 class="text-center p-3 m-3">Рекомендовані книги</h2>
+
+<div class="row m-3 p-3 justify-content-center">
+    <table class="table table-bordered">
+        <caption class="text-center">Результати підбору книг на основі лайків</caption>
+        <thead class="thead-light">
+            <tr>
+                <th class="text-center align-middle">Вподобана книга</th>
+                <th class="text-center align-middle">Подібні книги</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for book in sim_books %}
+                <tr>
+                    <td>
+                        <div class="m-3 p-3">
+                            <a href="/book-{{book.id}}">
+                                <p class="text-center">
+                                    <img src="{{book.cover_url}}" class="book_cover_small"/>
+                                </p>
+                                <p class="text-center">  
+                                    <b>{{book.book_title}}</b>
+                                </p>
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row justify-content-center">
+                        {% for book in sim_books[book]%}
+                        <div class="col-md-2">
+                            <a href="/book-{{book.id}}">
+                                <p class="text-center">
+                                    <img src="{{book.cover_url}}" class="book_cover_small"/>
+                                </p>
+                                <p class="text-center">  
+                                    <b>{{book.book_title}}</b>
+                                </p>
+                            </a>
+                        </div>
+                        {% endfor %}
+                        </div>
+                    </td>
+                </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div>
+    <p class="text-center p-3 m-3">
+        <img src="../static/book_placeholder.png" width="200px">
+    </p>
+    <h2 class="text-center m-3">Список поки що пустий. Ви ще не ставили лайки.</h2>
+    <h4 class="text-center m-3">
+        <a href="/">Продовжити перегляд</a>
+    </h4>
+</div>
+{% endif %}
+{% endblock %}

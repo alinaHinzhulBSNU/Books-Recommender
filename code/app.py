@@ -7,6 +7,8 @@ from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 # SETTINGS
@@ -26,6 +28,9 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 BOOKS_PER_PAGE = 12
+COS_SIM = None
+RECOMMEND_FOR_BOOK_N = 10
+RECOMMEND_FOR_LIKES_N = 5
 
 
 # MODELS
@@ -91,52 +96,75 @@ class Action(db.Model):
 # FORMS
     
 class RegistrationForm(FlaskForm):
-    username = StringField(label="Username",
+    username = StringField(label="Введіть логін:",
                            validators=[InputRequired(), Length(min=4, max=20)],
-                           render_kw={"placeholder": "Username"})
+                           render_kw={"placeholder": "Логін"})
     
-    password = PasswordField(label="Password",
+    password = PasswordField(label="Введіть пароль:",
                              validators=[InputRequired(), Length(min=4, max=20)],
-                             render_kw={"placeholder": "Password"})
+                             render_kw={"placeholder": "Пароль"})
     
-    submit = SubmitField("Register")
+    submit = SubmitField("Зареєструватися")
 
     def validate_username(self, username):
         existing_username = User.query.filter_by(username=username.data).first()
 
         if existing_username:
-            raise ValidationError("This username already exists.")
+            raise ValidationError("Такий логін вже зареєстровано.")
+
 
 class LoginForm(FlaskForm):
-    username = StringField(validators=[InputRequired(), Length(min=4, max=20)],
-                           render_kw={"placeholder": "Username"})
+    username = StringField(label="Введіть логін:",
+                           validators=[InputRequired(), Length(min=4, max=20)],
+                           render_kw={"placeholder": "Логін"})
     
-    password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)],
-                           render_kw={"placeholder": "Password"})
+    password = PasswordField(label="Введіть пароль:",
+                             validators=[InputRequired(), Length(min=4, max=20)],
+                             render_kw={"placeholder": "Пароль"})
     
-    submit = SubmitField("Login")
+    submit = SubmitField("Увійти")
+
+class SearchForm(FlaskForm):
+    book_title = StringField(label="Введіть назву книги::",
+                           validators=[InputRequired(), Length(min=4, max=20)],
+                           render_kw={"placeholder": "Назва книги"})
+    
+    submit = SubmitField("Шукати")
+
+
+# RECOMMENDATION LOGIC
+      
+def read_stop_words(path):
+    with open(path, 'r') as file:
+        content = file.readlines()
+
+    return [line.strip() for line in content]
+
+    
+def similar_books(book_id, n):
+    global COS_SIM
+
+    # Similarity score for all books
+    if COS_SIM is None:
+        stop_words_ua = read_stop_words("stopwords_ua.txt")
+        descriptions = [book.description for book in Book.query.all()]
+
+        vectorizer = TfidfVectorizer(stop_words=stop_words_ua)
+        books_tfidf_matrix = vectorizer.fit_transform(descriptions)
+        
+        COS_SIM = cosine_similarity(books_tfidf_matrix, books_tfidf_matrix)
+
+    # Similarity score for selected book and all other books
+    ids = [book.id for book in Book.query.all()]   
+    scores = sorted(zip(ids, COS_SIM[book_id - 1]), key=lambda x: x[1], reverse=True)[1:n + 1]
+
+    # Best match book's ids
+    similar_books_ids = [score[0] for score in scores]
+
+    return Book.query.filter(Book.id.in_(similar_books_ids)).all()
 
 
 # ROUTES
-
-@app.route('/')
-@login_required
-def home():
-    return redirect(url_for("page", page_number=1))
-
-@app.route('/page-<int:page_number>')
-@login_required
-def page(page_number):
-    pages = range(1, Book.query.count() // BOOKS_PER_PAGE + 2)
-    books = Book.query.paginate(page=page_number, per_page=BOOKS_PER_PAGE, error_out=False).items
-
-    return render_template('home.html', books = books, pages=pages, current_page=page_number)
-
-@app.route('/book-<int:book_id>')
-@login_required
-def book(book_id):
-    book = Book.query.filter_by(id = book_id).first()
-    return render_template('book.html', book = book)
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -179,6 +207,73 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for("login"))
+
+@app.route('/')
+@login_required
+def home():
+    return redirect(url_for("page", page_number=1))
+
+@app.route('/page-<int:page_number>', methods=["GET", "POST"])
+@login_required
+def page(page_number):
+    # All books (with pagination)
+    pages = range(1, Book.query.count() // BOOKS_PER_PAGE + 2)
+    books = Book.query.paginate(page=page_number, per_page=BOOKS_PER_PAGE, error_out=False).items
+
+    # Search for book by book_title
+    form = SearchForm()
+
+    if form.validate_on_submit():
+        book_title = form.book_title.data
+        books = Book.query.filter(Book.book_title.ilike(f"%{book_title}%")).all()
+
+        return render_template('home.html', books = books, pages=None, current_page=None, form = form)
+
+    return render_template('home.html', books = books, pages=pages, current_page=page_number, form = form)
+
+@app.route('/book-<int:book_id>')
+@login_required
+def book(book_id):
+    book = Book.query.filter_by(id = book_id).first()
+    sim_books = similar_books(book_id=book_id, n=RECOMMEND_FOR_BOOK_N)
+
+    likes = Action.query.filter(Action.book_id == book_id, Action.user_id == current_user.id).all()
+    liked = len(likes) > 0
+
+    return render_template('book.html', book = book, sim_books = sim_books, liked = liked)
+
+@app.route('/like-<int:book_id>')
+@login_required
+def like(book_id):
+    like = Action.query.filter(Action.book_id == book_id, Action.user_id == current_user.id).first()
+    if not like:
+        like = Action(book_id = book_id, user_id = current_user.id, type = "like")
+
+    db.session.add(like)
+    db.session.commit()
+
+    return redirect(url_for("book", book_id=book_id))
+
+@app.route('/dislike-<int:book_id>')
+@login_required
+def dislike(book_id):
+    like = Action.query.filter(Action.book_id == book_id, Action.user_id == current_user.id).first()
+    if like:
+        db.session.delete(like)
+    db.session.commit()
+
+    return redirect(url_for("book", book_id=book_id))
+
+@app.route('/recommend')
+@login_required
+def recommend():
+    sim_books = dict()
+    
+    favorite_books = [action.book for action in current_user.actions]
+    for book in favorite_books:
+        sim_books[book] = similar_books(book.id, 5)
+
+    return render_template('recommend.html', sim_books = sim_books)
 
 
 # DATA

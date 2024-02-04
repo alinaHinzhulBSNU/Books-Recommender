@@ -3,8 +3,13 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<h2 class="text-center m-3">Registration</h2>
-<div class="container">
+<p class="text-center p-3 m-3">
+    <img src="../static/auth.png" width="150px">
+</p>
+
+<h2 class="text-center">Реєстрація</h2>
+
+<div class="container pt-3 mt-3">
     <form method="POST" action="">
         {{ form.hidden_tag() }}
 
@@ -17,10 +22,10 @@
             {{ form.password(class_="form-control", size=32) }}
         </div>
 
-        {{ form.submit(class_="form-control") }}
+        {{ form.submit(class_="form-control custom-button") }}
     </form>
 </div>
 <p class="text-center m-3">
-    <a href="{{url_for('login')}}">Already have an account?</a><br>
+    <a href="{{url_for('login')}}">Маєте обліковий запис?</a><br>
 </p>
 {% endblock %}
