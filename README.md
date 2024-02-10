@@ -10,6 +10,6 @@ Master's thesis (reports, code, images)
 <img src="https://github.com/alinaHinzhulBSNU/Books-Recommender/blob/main/images/ComponentDiagram.png" width="500px">
 <br>
 <br>
-<p>Results exampe:</p>
+<p>Results example:</p>
 <img src="https://github.com/alinaHinzhulBSNU/Books-Recommender/blob/main/images/recommendations.png" width="500px">
 
